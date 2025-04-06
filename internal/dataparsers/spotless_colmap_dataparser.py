@@ -66,26 +66,54 @@ class SpotLessColmapDataParser(ColmapDataParser):
         return torch.tensor(semantic_feature, dtype=torch.float)
 
     @staticmethod
+    # def read_semantic_feature_and_cluster(path):
+    #     from sklearn.cluster import AgglomerativeClustering
+    #     from sklearn.neighbors import kneighbors_graph
+
+    #     feature = np.load(path)
+
+    #     # cluster
+    #     ft_flat = np.transpose(feature.reshape((1280, 50 * 50)), (1, 0))
+    #     x = np.linspace(0, 1, 50)
+    #     y = np.linspace(0, 1, 50)
+    #     xv, yv = np.meshgrid(x, y)
+    #     indxy = np.reshape(np.stack([xv, yv], axis=-1), (50 * 50, 2))
+    #     knn_graph = kneighbors_graph(indxy, 8, include_self=False)
+    #     model = AgglomerativeClustering(
+    #         linkage="ward", connectivity=knn_graph, n_clusters=100
+    #     )
+    #     model.fit(ft_flat)
+    #     feature = np.array(
+    #         [model.labels_ == i for i in range(model.n_clusters)],
+    #         dtype=np.float32,
+    #     ).reshape((model.n_clusters, 50, 50))
+
+    #     return torch.tensor(feature, dtype=torch.float)
     def read_semantic_feature_and_cluster(path):
+        import numpy as np
+        import torch
         from sklearn.cluster import AgglomerativeClustering
         from sklearn.neighbors import kneighbors_graph
 
-        feature = np.load(path)
+        feature = np.load(path)  # shape: (C, H, W)
+        C, H, W = feature.shape
 
         # cluster
-        ft_flat = np.transpose(feature.reshape((1280, 50 * 50)), (1, 0))
-        x = np.linspace(0, 1, 50)
-        y = np.linspace(0, 1, 50)
+        ft_flat = np.transpose(feature.reshape((C, H * W)), (1, 0))  # shape: (H*W, C)
+        x = np.linspace(0, 1, W)
+        y = np.linspace(0, 1, H)
         xv, yv = np.meshgrid(x, y)
-        indxy = np.reshape(np.stack([xv, yv], axis=-1), (50 * 50, 2))
+        indxy = np.reshape(np.stack([xv, yv], axis=-1), (H * W, 2))
+
         knn_graph = kneighbors_graph(indxy, 8, include_self=False)
         model = AgglomerativeClustering(
             linkage="ward", connectivity=knn_graph, n_clusters=100
         )
         model.fit(ft_flat)
+
         feature = np.array(
             [model.labels_ == i for i in range(model.n_clusters)],
             dtype=np.float32,
-        ).reshape((model.n_clusters, 50, 50))
+        ).reshape((model.n_clusters, H, W))
 
         return torch.tensor(feature, dtype=torch.float)

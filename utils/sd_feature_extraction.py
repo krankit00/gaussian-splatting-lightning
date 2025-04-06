@@ -234,7 +234,7 @@ class SDFeaturizer:
                 deform=None,
                 t=261,
                 up_ft_index=[1],
-                ensemble_size=8, noise=None):
+                ensemble_size=2, noise=None):
 
         img_tensor = img_tensor.repeat(ensemble_size, 1, 1, 1).cuda()  # ensem, c, h, w
 
@@ -270,7 +270,7 @@ def parse_args():
     parser.add_argument("image_dir", type=str)
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--extensions", "-e", nargs="+", type=str, default=["jpg", "JPG", "jpeg", "JPEG"])
-    parser.add_argument("--image-size", "-s", type=int, default=800)
+    parser.add_argument("--image-size", "-s", type=int, default=400)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--image_list", "--image-list", type=str, default=None)
     parser.add_argument("--nerfw_tsv", type=str, default=None)
@@ -328,7 +328,7 @@ def main():
 
             fts, image = dift.forward(img_tensor,
                                       prompt='',
-                                      ensemble_size=4,
+                                      ensemble_size=2,
                                       t=261,
                                       up_ft_index=[1, ])
 
